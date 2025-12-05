@@ -1,8 +1,8 @@
 'use client';
 import { useState } from 'react';
-import { Search } from 'lucide-react';
+import { Search, Droplets, Wind, Eye, Gauge } from 'lucide-react';
 
-// Weather data interface
+// Weather interface
 interface WeatherData {
   name: string;
   sys: { country: string };
@@ -30,22 +30,17 @@ export default function Home() {
   // Fetch weather
   const getWeather = async () => {
     if (!city.trim()) return;
-
     setLoading(true);
 
     try {
       const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API_KEY}`;
       const response = await fetch(url);
       
-      if (!response.ok) {
-        throw new Error('City not found');
-      }
+      if (!response.ok) throw new Error('City not found');
 
       const data: WeatherData = await response.json();
       setWeather(data);
       setCity('');
-      
-      console.log('Weather Data:', data);
     } catch (err) {
       console.error('Error:', err);
       setWeather(null);
@@ -65,7 +60,7 @@ export default function Home() {
             <p className="text-white/90 font-medium">Check weather anywhere</p>
           </div>
 
-          {/* Search input */}
+          {/* Search */}
           <div className="mb-6">
             <div className="relative">
               <input
@@ -79,7 +74,6 @@ export default function Home() {
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/80" size={20} />
             </div>
 
-            {/* Search button */}
             <button 
               onClick={getWeather}
               disabled={loading}
@@ -89,20 +83,80 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Weather data */}
-          {weather && (
-            <div className="bg-white/20 rounded-xl p-4 backdrop-blur-md border border-white/30">
-              <h3 className="text-white font-bold mb-2">Weather Data:</h3>
-              <pre className="text-white text-xs overflow-auto max-h-64">
-                {JSON.stringify(weather, null, 2)}
-              </pre>
+          {/* Weather Display */}
+          {weather && weather.weather[0] && (
+            <div className="space-y-6">
+              
+              {/* Main info */}
+              <div className="text-center">
+                <h2 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">
+                  {weather.name}, {weather.sys.country}
+                </h2>
+                
+                <div className="text-6xl font-bold text-white mb-2 drop-shadow-2xl">
+                  {Math.round(weather.main.temp)}°C
+                </div>
+                
+                <p className="text-xl text-white/90 capitalize font-semibold drop-shadow-md">
+                  {weather.weather[0].description}
+                </p>
+              </div>
+
+              {/* Details grid */}
+              <div className="grid grid-cols-2 gap-4">
+                
+                {/* Humidity */}
+                <div className="bg-white/20 rounded-xl p-4 backdrop-blur-md border border-white/30 shadow-lg hover:bg-white/25 transition-all duration-300">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Droplets className="text-white/90" size={20} />
+                    <span className="text-white/90 text-sm font-semibold">Humidity</span>
+                  </div>
+                  <p className="text-2xl font-bold text-white drop-shadow-md">
+                    {weather.main.humidity}%
+                  </p>
+                </div>
+
+                {/* Wind */}
+                <div className="bg-white/20 rounded-xl p-4 backdrop-blur-md border border-white/30 shadow-lg hover:bg-white/25 transition-all duration-300">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Wind className="text-white/90" size={20} />
+                    <span className="text-white/90 text-sm font-semibold">Wind Speed</span>
+                  </div>
+                  <p className="text-2xl font-bold text-white drop-shadow-md">
+                    {weather.wind.speed} m/s
+                  </p>
+                </div>
+
+                {/* Pressure */}
+                <div className="bg-white/20 rounded-xl p-4 backdrop-blur-md border border-white/30 shadow-lg hover:bg-white/25 transition-all duration-300">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Gauge className="text-white/90" size={20} />
+                    <span className="text-white/90 text-sm font-semibold">Pressure</span>
+                  </div>
+                  <p className="text-2xl font-bold text-white drop-shadow-md">
+                    {weather.main.pressure} hPa
+                  </p>
+                </div>
+
+                {/* Visibility */}
+                <div className="bg-white/20 rounded-xl p-4 backdrop-blur-md border border-white/30 shadow-lg hover:bg-white/25 transition-all duration-300">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Eye className="text-white/90" size={20} />
+                    <span className="text-white/90 text-sm font-semibold">Visibility</span>
+                  </div>
+                  <p className="text-2xl font-bold text-white drop-shadow-md">
+                    {(weather.visibility / 1000).toFixed(1)} km
+                  </p>
+                </div>
+              </div>
+
             </div>
           )}
 
           {/* Empty state */}
           {!weather && !loading && (
             <div className="text-center py-8">
-              <p className="text-white/80 font-medium">Search for a city to see weather data</p>
+              <p className="text-white/80 font-medium">Search for a city to see weather</p>
             </div>
           )}
 
