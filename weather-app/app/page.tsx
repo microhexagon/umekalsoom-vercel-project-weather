@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Search, Droplets, Wind, Eye, Gauge } from 'lucide-react';
+import { Search, Droplets, Wind, Eye, Gauge, Cloud } from 'lucide-react';
 
 // Weather interface
 interface WeatherData {
@@ -20,29 +20,49 @@ interface WeatherData {
   visibility: number;
 }
 
+// Weather types
+type WeatherCondition = 'Clear' | 'Clouds' | 'Rain' | 'Drizzle' | 'Thunderstorm' | 'Snow' | 'Mist' | 'Fog';
+
 export default function Home() {
   const [city, setCity] = useState('');
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const API_KEY = '16a626b8628ed342039362c14dba4b54';
+
+  // Weather icons
+  const weatherIcons: Record<WeatherCondition, string> = {
+    Clear: '☀️',
+    Clouds: '☁️',
+    Rain: '🌧️',
+    Drizzle: '🌦️',
+    Thunderstorm: '⛈️',
+    Snow: '❄️',
+    Mist: '🌫️',
+    Fog: '🌫️',
+  };
 
   // Fetch weather
   const getWeather = async () => {
     if (!city.trim()) return;
+    
     setLoading(true);
+    setError('');
 
     try {
       const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API_KEY}`;
       const response = await fetch(url);
       
-      if (!response.ok) throw new Error('City not found');
+      if (!response.ok) {
+        throw new Error('City not found');
+      }
 
       const data: WeatherData = await response.json();
       setWeather(data);
       setCity('');
     } catch (err) {
-      console.error('Error:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred');
       setWeather(null);
     } finally {
       setLoading(false);
@@ -83,12 +103,24 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Weather Display */}
+          {/* Error message */}
+          {error && (
+            <div className="mb-6 bg-red-500/30 border-2 border-red-400/60 text-white px-4 py-3 rounded-xl backdrop-blur-sm shadow-lg">
+              ⚠️ {error}
+            </div>
+          )}
+
+          {/* Weather display */}
           {weather && weather.weather[0] && (
             <div className="space-y-6">
               
               {/* Main info */}
               <div className="text-center">
+                {/* Weather icon */}
+                <div className="text-6xl mb-4 animate-bounce">
+                  {weatherIcons[weather.weather[0].main as WeatherCondition] || '🌤️'}
+                </div>
+                
                 <h2 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">
                   {weather.name}, {weather.sys.country}
                 </h2>
@@ -154,8 +186,9 @@ export default function Home() {
           )}
 
           {/* Empty state */}
-          {!weather && !loading && (
+          {!weather && !loading && !error && (
             <div className="text-center py-8">
+              <Cloud className="mx-auto text-white/60 mb-4" size={64} />
               <p className="text-white/80 font-medium">Search for a city to see weather</p>
             </div>
           )}
