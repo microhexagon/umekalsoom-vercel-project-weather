@@ -146,7 +146,7 @@ export default function Home() {
                 placeholder="Enter city name..."
                 className="w-full px-5 py-4 pl-12 bg-white/20 border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/25 transition-all duration-300 text-sm"
               />
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/70" size={18} />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white" size={18} />
             </div>
 
             {/* Search button */}
@@ -215,8 +215,8 @@ export default function Home() {
                 {/* Humidity */}
                 <div className="bg-white/15 rounded-2xl p-5 backdrop-blur-xl border border-white/20 hover:bg-white/20 transition-all">
                   <div className="flex items-center gap-2 mb-2">
-                    <Droplets className="text-white/80" size={18} />
-                    <span className="text-white/70 text-xs font-medium uppercase tracking-wide">Humidity</span>
+                    <span className="text-2xl">💧</span>
+                    <span className="text-white/90 text-xs font-medium uppercase tracking-wide">Humidity</span>
                   </div>
                   <p className="text-3xl font-bold text-white">
                     {weather.main.humidity}<span className="text-xl">%</span>
@@ -226,8 +226,8 @@ export default function Home() {
                 {/* Wind speed */}
                 <div className="bg-white/15 rounded-2xl p-5 backdrop-blur-xl border border-white/20 hover:bg-white/20 transition-all">
                   <div className="flex items-center gap-2 mb-2">
-                    <Wind className="text-white/80" size={18} />
-                    <span className="text-white/70 text-xs font-medium uppercase tracking-wide">Wind</span>
+                    <span className="text-2xl">💨</span>
+                    <span className="text-white/90 text-xs font-medium uppercase tracking-wide">Wind</span>
                   </div>
                   <p className="text-3xl font-bold text-white">
                     {weather.wind.speed}<span className="text-base ml-1">m/s</span>
@@ -237,8 +237,8 @@ export default function Home() {
                 {/* Pressure */}
                 <div className="bg-white/15 rounded-2xl p-5 backdrop-blur-xl border border-white/20 hover:bg-white/20 transition-all">
                   <div className="flex items-center gap-2 mb-2">
-                    <Gauge className="text-white/80" size={18} />
-                    <span className="text-white/70 text-xs font-medium uppercase tracking-wide">Pressure</span>
+                    <span className="text-2xl">🌡️</span>
+                    <span className="text-white/90 text-xs font-medium uppercase tracking-wide">Pressure</span>
                   </div>
                   <p className="text-3xl font-bold text-white">
                     {weather.main.pressure}<span className="text-sm ml-1">hPa</span>
@@ -248,8 +248,8 @@ export default function Home() {
                 {/* Visibility */}
                 <div className="bg-white/15 rounded-2xl p-5 backdrop-blur-xl border border-white/20 hover:bg-white/20 transition-all">
                   <div className="flex items-center gap-2 mb-2">
-                    <Eye className="text-white/80" size={18} />
-                    <span className="text-white/70 text-xs font-medium uppercase tracking-wide">Visibility</span>
+                    <span className="text-2xl">👁️</span>
+                    <span className="text-white/90 text-xs font-medium uppercase tracking-wide">Visibility</span>
                   </div>
                   <p className="text-3xl font-bold text-white">
                     {(weather.visibility / 1000).toFixed(1)}<span className="text-base ml-1">km</span>
@@ -260,7 +260,7 @@ export default function Home() {
 
               {/* Feels like */}
               <div className="bg-white/15 rounded-2xl p-5 text-center backdrop-blur-xl border border-white/20">
-                <p className="text-white/70 text-xs mb-2 font-medium uppercase tracking-wide">Feels Like</p>
+                <p className="text-white/90 text-xs mb-2 font-medium uppercase tracking-wide">Feels Like</p>
                 <p className="text-4xl font-bold text-white">
                   {Math.round(weather.main.feels_like)}°C
                 </p>
@@ -270,8 +270,8 @@ export default function Home() {
           ) : (
             !loading && !error && !gettingLocation && (
               <div className="text-center py-16">
-                <Cloud className="mx-auto text-white/40 mb-4" size={56} />
-                <p className="text-white/70 font-medium text-sm">Enter a city name to get started</p>
+                <Cloud className="mx-auto text-white/60 mb-4" size={56} />
+                <p className="text-white/90 font-medium text-sm">Enter a city name to get started</p>
               </div>
             )
           )}
