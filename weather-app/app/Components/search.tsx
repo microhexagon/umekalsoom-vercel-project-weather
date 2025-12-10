@@ -1,4 +1,4 @@
-// components/SearchBar.tsx
+
 import { Search, MapPin } from 'lucide-react';
 
 interface SearchBarProps {
