@@ -40,7 +40,6 @@ interface WeatherDisplayProps {
 }
 
 export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({ weather, loading, error, gettingLocation }) => {
-  
   if (loading) return null; 
   
   // Loader for Geolocation

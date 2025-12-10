@@ -1,8 +1,8 @@
-
+// app/page.tsx
 'use client';
 import { useState, useEffect } from 'react';
 
-//import Components
+// Components
 import { SearchBar } from '@/app/Components/search';
 import { WeatherDisplay } from '@/app/Components/display';
 
@@ -35,8 +35,9 @@ export default function Home() {
   // API key
   const API_KEY = '16a626b8628ed342039362c14dba4b54'; 
 
-  // Background change (
+  // Background change 
   const getBackground = () => {
+  
     return 'from-teal-700 via-teal-600 to-emerald-500'; 
   };
 
@@ -90,7 +91,7 @@ export default function Home() {
     }
   };
 
-  // Fetch weather data by city 
+  // Fetch weather data
   const getWeather = async () => {
     if (!city.trim()) return;
 
@@ -126,7 +127,7 @@ export default function Home() {
             <p className="text-white/80 text-sm">Check weather anywhere</p>
           </div>
 
-          {/* SearchBar Component */}
+          {/* 1. SearchBar Component */}
           <SearchBar
             city={city}
             setCity={setCity}
@@ -136,7 +137,7 @@ export default function Home() {
             gettingLocation={gettingLocation}
           />
           
-          {/*  WeatherDisplay Component */}
+          {/* 2. WeatherDisplay Component */}
           <WeatherDisplay
             weather={weather}
             loading={loading}
