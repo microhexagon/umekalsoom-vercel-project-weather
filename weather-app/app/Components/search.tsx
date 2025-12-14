@@ -1,4 +1,3 @@
-
 import { Search, MapPin } from 'lucide-react';
 
 interface SearchBarProps {
@@ -19,39 +18,35 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   gettingLocation,
 }) => {
   return (
-    <div className="mb-6">
-      <div className="flex gap-3"> 
+    <div className="mb-8">
+      <div className="flex gap-3">
         <div className="relative flex-1">
           <input
             type="text"
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && getWeather()}
-            placeholder="Enter city name..."
-            className="w-full px-5 py-4 pl-12 bg-white/20 border border-white/30 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/25 transition-all duration-300 text-sm"
+            onKeyDown={(e) => e.key === 'Enter' && getWeather()}
+            placeholder="Search city..."
+            className="w-full px-5 py-3 pl-11 bg-black/25 border border-white/20 rounded-2xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-pink-300/40 focus:bg-black/30 transition-all font-light"
           />
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white" size={18} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/70" size={18} strokeWidth={1.5} />
         </div>
-
         <button
           onClick={getWeather}
           disabled={loading || !city.trim()}
-          className="bg-white/20 hover:bg-white/30 text-white font-semibold py-4 px-6 rounded-2xl transition-all duration-300 disabled:opacity-50 border border-white/20 hover:border-white/40 backdrop-blur-xl text-sm whitespace-nowrap"
-          style={{ minWidth: 'auto' }}
+          className="px-6 py-3 bg-black/30 hover:bg-black/40 disabled:opacity-50 rounded-2xl text-white font-light border border-white/20 hover:border-white/30 transition"
         >
           {loading ? '...' : 'Search'}
         </button>
       </div>
-
-      <div className="flex justify-center mt-4"> 
-         <button 
+      <div className="flex justify-center mt-4">
+        <button
           onClick={getUserLocation}
           disabled={gettingLocation || loading}
-          className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white font-semibold px-5 py-3.5 rounded-2xl transition-all duration-300 disabled:opacity-50 border border-white/20 hover:border-white/40 backdrop-blur-xl"
-          title="Use my location"
+          className="flex items-center gap-2 px-5 py-2.5 bg-black/30 hover:bg-black/40 rounded-2xl text-white text-sm font-light border border-white/20 hover:border-white/30 transition disabled:opacity-60"
         >
-          <MapPin size={18} />
-          {gettingLocation ? 'Locating...' : 'Use My Location'}
+          <MapPin size={16} strokeWidth={1.5} />
+          {gettingLocation ? 'Detecting...' : 'Use My Location'}
         </button>
       </div>
     </div>
