@@ -78,7 +78,7 @@ export default function Home() {
         }
       }
 
-      // more detailed results
+      // Fallback to Nominatim for more detailed results
       const nomRes = await fetch(
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`
       );
@@ -170,7 +170,7 @@ export default function Home() {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden"
+      className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
       style={{
         backgroundImage: 'url("/assests/Untitled.jpg")',
         backgroundSize: 'cover',
@@ -180,11 +180,11 @@ export default function Home() {
     >
       <div className="absolute inset-0 bg-black/40" />
       
-      <div className="w-full max-w-md relative z-10">
-        <div className="bg-black/40 backdrop-blur-2xl rounded-3xl shadow-2xl p-8 border border-white/20">
-          <div className="text-center mb-8">
-            <h1 className="text-5xl font-thin text-white mb-1 tracking-wider">Weather</h1>
-            <p className="text-white/80 text-sm font-light">Real-time conditions</p>
+      <div className="w-full max-w-lg relative z-10 my-auto">
+        <div className="bg-black/40 backdrop-blur-2xl rounded-3xl shadow-2xl p-6 border border-white/20">
+          <div className="text-center mb-6">
+            <h1 className="text-4xl font-thin text-white mb-1 tracking-wider">Weather</h1>
+            <p className="text-white/80 text-xs font-light">Real-time conditions</p>
           </div>
           
           <SearchBar
