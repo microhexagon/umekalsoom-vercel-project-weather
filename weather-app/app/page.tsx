@@ -27,27 +27,35 @@ interface WeatherData {
   };
 }
 
-type WeatherTheme = 'warm' | 'cold' | 'mild';
-
 export default function Home() {
   const [city, setCity] = useState('');
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [gettingLocation, setGettingLocation] = useState(false);
-  const [theme, setTheme] = useState<WeatherTheme>('mild');
   
   const API_KEY = '16a626b8628ed342039362c14dba4b54';
+
+  // THEME
+  const getTheme = (temp: number | null): 'warm' | 'cold' | 'mild' => {
+    if (temp === null) {
+      return 'mild'; 
+    }
+    if (temp >= 25) {
+      return 'warm'; 
+    }
+    if (temp <= 10) {
+      return 'cold'; 
+    }
+    return 'mild'; 
+  };
+
+  const currentTheme = getTheme(weather?.main.temp ?? null);
+  
 
   useEffect(() => {
     getUserLocation();
   }, []);
-
-  const getWeatherTheme = (temp: number): WeatherTheme => {
-    if (temp > 25) return 'warm';
-    if (temp < 10) return 'cold';
-    return 'mild';
-  };
 
   const getUserLocation = () => {
     if (!navigator.geolocation) {
@@ -59,89 +67,25 @@ export default function Home() {
     setError('');
     
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        console.log('GPS Coordinates:', latitude, longitude);
-        fetchWeatherByCoords(latitude, longitude);
-      },
-      (error) => {
-        console.error('Geolocation error:', error);
+      (pos) => fetchWeatherByCoords(pos.coords.latitude, pos.coords.longitude),
+      () => {
         setError('Unable to access location');
         setGettingLocation(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 0
       }
     );
   };
 
   const getLocationName = async (lat: number, lon: number) => {
     try {
-      // Method 1: Nominatim (most detailed)
-      const nomResponse = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=16&addressdetails=1`,
-        {
-          headers: {
-            'User-Agent': 'WeatherApp/1.0',
-            'Accept-Language': 'en'
-          }
-        }
+      // Try OpenWeatherMap first
+      const owmRes = await fetch(
+        `https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${API_KEY}`
       );
       
-      if (nomResponse.ok) {
-        const data = await nomResponse.json();
-        const addr = data.address || {};
-        
-        console.log('Nominatim response:', data);
-        
-        // Get area - prioritize most specific
-        const area = 
-          addr.neighbourhood || 
-          addr.suburb || 
-          addr.quarter ||
-          addr.residential ||
-          addr.hamlet ||
-          addr.village ||
-          addr.town || 
-          addr.city_district ||
-          data.name;
-
-        // Get city - multiple fallbacks
-        const city = 
-          addr.city || 
-          addr.town || 
-          addr.municipality ||
-          addr.county ||
-          addr.state_district;
-
-        const state = addr.state;
-        const country = addr.country;
-
-        if (area || city) {
-          return {
-            area: area,
-            city: city || area,
-            state: state,
-            country: country
-          };
-        }
-      }
-
-      // Method 2: OpenWeatherMap Geocoding
-      const owmResponse = await fetch(
-        `https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=10&appid=${API_KEY}`
-      );
-      
-      if (owmResponse.ok) {
-        const data = await owmResponse.json();
-        console.log('OpenWeatherMap response:', data);
-        
-        if (data?.length > 0) {
-          // Find the most relevant result
-          const location = data[0];
-          
+      if (owmRes.ok) {
+        const owmData = await owmRes.json();
+        if (owmData && owmData.length > 0) {
+          const location = owmData[0];
           return {
             area: location.name,
             city: location.name,
@@ -151,60 +95,54 @@ export default function Home() {
         }
       }
 
-      // Method 3: BigDataCloud (backup)
-      const bdcResponse = await fetch(
-        `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`
+      // Fallback 
+      const nomRes = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`
       );
       
-      if (bdcResponse.ok) {
-        const data = await bdcResponse.json();
-        console.log('BigDataCloud response:', data);
+      if (nomRes.ok) {
+        const nomData = await nomRes.json();
+        const addr = nomData.address || {};
         
         return {
-          area: data.locality || data.localityInfo?.administrative?.[3]?.name,
-          city: data.city || data.locality,
-          state: data.principalSubdivision,
-          country: data.countryName
+          area: addr.suburb || addr.neighbourhood || addr.town || addr.city || addr.state,
+          city: addr.city || addr.town || addr.state,
+          state: addr.state,
+          country: addr.country
         };
       }
       
       return null;
-    } catch (err) {
-      console.error('Location fetch error:', err);
+    } catch {
       return null;
     }
   };
 
   const fetchWeatherByCoords = async (lat: number, lon: number) => {
     setLoading(true);
-    setError('');
-    
     try {
-      const response = await fetch(
+      // Fetch weather
+      const res = await fetch(
         `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`
       );
       
-      if (!response.ok) throw new Error('Weather fetch failed');
+      if (!res.ok) throw new Error();
       
-      const weatherData = await response.json();
-      setTheme(getWeatherTheme(weatherData.main.temp));
+      const data = await res.json();
       
-      // Get detailed location from multiple sources
-      const locationInfo = await getLocationName(lat, lon);
-      
-      console.log('Final location info:', locationInfo);
+      // Get location name
+      const locationDetails = await getLocationName(lat, lon);
       
       setWeather({
-        ...weatherData,
+        ...data,
         coordinates: { lat, lon },
-        locationDetails: locationInfo || {
-          area: weatherData.name,
-          city: weatherData.name,
-          country: weatherData.sys.country
+        locationDetails: locationDetails || {
+          area: data.name,
+          city: data.name,
+          country: data.sys.country
         }
       });
-    } catch (err) {
-      console.error('Weather fetch error:', err);
+    } catch {
       setError('Failed to load weather');
     } finally {
       setLoading(false);
@@ -213,37 +151,34 @@ export default function Home() {
   };
 
   const getWeather = async () => {
-    const cityName = city.trim();
-    if (!cityName) return;
+    if (!city.trim()) return;
     
     setLoading(true);
     setError('');
     setWeather(null);
     
     try {
-      const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?q=${cityName}&units=metric&appid=${API_KEY}`
+      const res = await fetch(
+        `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API_KEY}`
       );
       
-      if (!response.ok) throw new Error('City not found');
+      if (!res.ok) throw new Error();
       
-      const weatherData = await response.json();
-      setTheme(getWeatherTheme(weatherData.main.temp));
+      const data = await res.json();
       
-      const { lat, lon } = weatherData.coord;
-      const locationInfo = await getLocationName(lat, lon);
+      // Get location details
+      const locationDetails = await getLocationName(data.coord.lat, data.coord.lon);
       
       setWeather({
-        ...weatherData,
-        coordinates: { lat, lon },
-        locationDetails: locationInfo || {
-          city: weatherData.name,
-          country: weatherData.sys.country
+        ...data,
+        coordinates: { lat: data.coord.lat, lon: data.coord.lon },
+        locationDetails: locationDetails || {
+          city: data.name,
+          country: data.sys.country
         }
       });
-      
       setCity('');
-    } catch (err) {
+    } catch {
       setError('City not found');
     } finally {
       setLoading(false);
@@ -276,7 +211,7 @@ export default function Home() {
             getUserLocation={getUserLocation}
             loading={loading}
             gettingLocation={gettingLocation}
-            theme={theme}
+            theme={currentTheme} 
           />
           
           <WeatherDisplay
@@ -284,8 +219,9 @@ export default function Home() {
             loading={loading}
             error={error}
             gettingLocation={gettingLocation}
-            theme={theme}
+            theme={currentTheme} 
           />
+          
         </div>
         
         {weather && (
