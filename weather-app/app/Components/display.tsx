@@ -1,4 +1,4 @@
-import { Cloud, Droplets, Gauge, Eye, Thermometer } from 'lucide-react';
+import { Cloud, Droplets, Gauge, Eye, Thermometer, MapPin } from 'lucide-react';
 
 interface WeatherData {
   name: string;
@@ -8,10 +8,20 @@ interface WeatherData {
     feels_like: number;
     humidity: number;
     pressure: number;
-  };
+  }
   weather: Array<{ main: string; description: string }>;
   wind: { speed: number };
   visibility?: number;
+  coordinates?: {
+    lat: number;
+    lon: number;
+  };
+  locationDetails?: {
+    area?: string;
+    city: string;
+    state?: string;
+    country: string;
+  };
 }
 
 interface WeatherDisplayProps {
@@ -28,7 +38,6 @@ export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
   gettingLocation,
 }) => {
   if (loading) return null;
-  
   if (gettingLocation) {
     return (
       <div className="text-center text-white/90 py-6 text-base font-light">
@@ -36,7 +45,6 @@ export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
       </div>
     );
   }
-  
   if (error) {
     return (
       <div className="text-center text-white/90 py-6 text-base font-light">
@@ -44,7 +52,6 @@ export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
       </div>
     );
   }
-  
   if (!weather) {
     return (
       <div className="text-center py-20">
@@ -54,6 +61,7 @@ export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
     );
   }
 
+  // Weather icons
   const mainIcon = {
     Clear: '☀️',
     Clouds: '☁️',
@@ -67,11 +75,24 @@ export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
 
   return (
     <div className="space-y-5 mt-6">
-      {/* Main weather card with darker background for better contrast */}
+      {/* Main card */}
       <div className="bg-black/30 backdrop-blur-xl rounded-3xl py-10 px-6 border border-white/20 text-center shadow-xl">
-        <p className="text-white text-base mb-1 font-light tracking-wide">
-          {weather.name}
-        </p>
+        {/* Location */}
+        <div className="mb-6">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <MapPin className="text-pink-300" size={18} strokeWidth={1.5} />
+            <p className="text-white text-xl font-light tracking-wide">
+              {weather.locationDetails?.area || weather.name}
+            </p>
+          </div>
+          
+          {/* State, Country */}
+          <p className="text-white/70 text-sm font-light">
+            {weather.locationDetails?.state ? `${weather.locationDetails.state}, ` : ''}
+            {weather.locationDetails?.country || weather.sys.country}
+          </p>
+        </div>
+        
         <p className="text-white/70 text-xs mb-6 font-light">
           {new Date().toLocaleDateString('en-US', { weekday: 'short', hour: '2-digit', minute: '2-digit' })}
         </p>
@@ -89,7 +110,7 @@ export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
           {Math.round(weather.main.temp)}°
         </div>
         
-        {/* Temperature and Humidity with icons */}
+        {/* Feels like, Humidity */}
         <div className="flex items-center justify-center gap-8 mt-6 text-white/90 text-sm">
           <div className="flex items-center gap-1.5">
             <Thermometer size={16} strokeWidth={1.5} className="text-white/70" />
@@ -103,7 +124,7 @@ export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
         </div>
       </div>
 
-      {/* Additional details grid with icons */}
+      {/* Details grid */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-black/25 backdrop-blur-xl rounded-2xl py-5 px-4 border border-white/20">
           <div className="flex items-center justify-center gap-2 mb-2">

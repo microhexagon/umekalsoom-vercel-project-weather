@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import { SearchBar } from '@/app/Components/search';
 import { WeatherDisplay } from '@/app/Components/display';
@@ -16,6 +15,16 @@ interface WeatherData {
   weather: Array<{ main: string; description: string }>;
   wind: { speed: number };
   visibility?: number;
+  coordinates?: {
+    lat: number;
+    lon: number;
+  };
+  locationDetails?: {
+    area?: string;
+    city: string;
+    state?: string;
+    country: string;
+  };
 }
 
 export default function Home() {
@@ -24,7 +33,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [gettingLocation, setGettingLocation] = useState(false);
-
+  
   const API_KEY = '16a626b8628ed342039362c14dba4b54';
 
   useEffect(() => {
@@ -36,9 +45,10 @@ export default function Home() {
       setError('Geolocation not supported');
       return;
     }
+
     setGettingLocation(true);
     setError('');
-
+    
     navigator.geolocation.getCurrentPosition(
       (pos) => fetchWeatherByCoords(pos.coords.latitude, pos.coords.longitude),
       () => {
@@ -48,15 +58,73 @@ export default function Home() {
     );
   };
 
+  const getLocationName = async (lat: number, lon: number) => {
+    try {
+      // Try OpenWeatherMap first
+      const owmRes = await fetch(
+        `https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${API_KEY}`
+      );
+      
+      if (owmRes.ok) {
+        const owmData = await owmRes.json();
+        if (owmData && owmData.length > 0) {
+          const location = owmData[0];
+          return {
+            area: location.name,
+            city: location.name,
+            state: location.state,
+            country: location.country
+          };
+        }
+      }
+
+      // more detailed results
+      const nomRes = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`
+      );
+      
+      if (nomRes.ok) {
+        const nomData = await nomRes.json();
+        const addr = nomData.address || {};
+        
+        return {
+          area: addr.suburb || addr.neighbourhood || addr.town || addr.city || addr.state,
+          city: addr.city || addr.town || addr.state,
+          state: addr.state,
+          country: addr.country
+        };
+      }
+      
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
   const fetchWeatherByCoords = async (lat: number, lon: number) => {
     setLoading(true);
     try {
+      // Fetch weather
       const res = await fetch(
         `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${API_KEY}`
       );
+      
       if (!res.ok) throw new Error();
+      
       const data = await res.json();
-      setWeather(data);
+      
+      // Get location name
+      const locationDetails = await getLocationName(lat, lon);
+      
+      setWeather({
+        ...data,
+        coordinates: { lat, lon },
+        locationDetails: locationDetails || {
+          area: data.name,
+          city: data.name,
+          country: data.sys.country
+        }
+      });
     } catch {
       setError('Failed to load weather');
     } finally {
@@ -67,18 +135,31 @@ export default function Home() {
 
   const getWeather = async () => {
     if (!city.trim()) return;
-
+    
     setLoading(true);
     setError('');
     setWeather(null);
-
+    
     try {
       const res = await fetch(
         `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API_KEY}`
       );
+      
       if (!res.ok) throw new Error();
+      
       const data = await res.json();
-      setWeather(data);
+      
+      // Get location details
+      const locationDetails = await getLocationName(data.coord.lat, data.coord.lon);
+      
+      setWeather({
+        ...data,
+        coordinates: { lat: data.coord.lat, lon: data.coord.lon },
+        locationDetails: locationDetails || {
+          city: data.name,
+          country: data.sys.country
+        }
+      });
       setCity('');
     } catch {
       setError('City not found');
@@ -97,16 +178,15 @@ export default function Home() {
         backgroundAttachment: 'fixed'
       }}
     >
-      {/* Dark overlay for better contrast */}
       <div className="absolute inset-0 bg-black/40" />
-
+      
       <div className="w-full max-w-md relative z-10">
         <div className="bg-black/40 backdrop-blur-2xl rounded-3xl shadow-2xl p-8 border border-white/20">
           <div className="text-center mb-8">
             <h1 className="text-5xl font-thin text-white mb-1 tracking-wider">Weather</h1>
             <p className="text-white/80 text-sm font-light">Real-time conditions</p>
           </div>
-
+          
           <SearchBar
             city={city}
             setCity={setCity}
@@ -115,7 +195,7 @@ export default function Home() {
             loading={loading}
             gettingLocation={gettingLocation}
           />
-
+          
           <WeatherDisplay
             weather={weather}
             loading={loading}
@@ -123,7 +203,7 @@ export default function Home() {
             gettingLocation={gettingLocation}
           />
         </div>
-
+        
         {weather && (
           <p className="text-center text-white/70 text-xs mt-6 font-light">
             Powered by OpenWeatherMap
