@@ -29,6 +29,7 @@ interface WeatherDisplayProps {
   loading: boolean;
   error: string;
   gettingLocation: boolean;
+  theme: 'warm' | 'cold' | 'mild';
 }
 
 export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
@@ -38,6 +39,7 @@ export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
   gettingLocation,
 }) => {
   if (loading) return null;
+  
   if (gettingLocation) {
     return (
       <div className="text-center text-white/90 py-6 text-base font-light">
@@ -45,6 +47,7 @@ export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
       </div>
     );
   }
+  
   if (error) {
     return (
       <div className="text-center text-white/90 py-6 text-base font-light">
@@ -52,6 +55,7 @@ export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
       </div>
     );
   }
+  
   if (!weather) {
     return (
       <div className="text-center py-20">
@@ -61,8 +65,7 @@ export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
     );
   }
 
-  // Weather icons
-  const mainIcon = {
+  const weatherIcons: Record<string, string> = {
     Clear: '☀️',
     Clouds: '☁️',
     Rain: '🌧️',
@@ -71,13 +74,46 @@ export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
     Snow: '❄️',
     Mist: '🌫️',
     Fog: '🌫️',
-  }[weather.weather[0].main] || '☁️';
+  };
+
+  const mainIcon = weatherIcons[weather.weather[0].main] || '☁️';
+  const currentDate = new Date().toLocaleDateString('en-US', { 
+    weekday: 'short', 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  });
+
+  const detailCards = [
+    {
+      icon: Cloud,
+      label: 'WIND',
+      value: weather.wind.speed,
+      unit: 'm/s'
+    },
+    {
+      icon: Gauge,
+      label: 'PRESSURE',
+      value: weather.main.pressure,
+      unit: 'hPa'
+    },
+    {
+      icon: Eye,
+      label: 'VISIBILITY',
+      value: weather.visibility ? (weather.visibility / 1000).toFixed(1) : 'N/A',
+      unit: 'km'
+    },
+    {
+      icon: Thermometer,
+      label: 'FEELS LIKE',
+      value: Math.round(weather.main.feels_like) + '°',
+      unit: 'celsius'
+    }
+  ];
 
   return (
     <div className="space-y-4 mt-4">
       {/* Main card */}
       <div className="bg-black/30 backdrop-blur-xl rounded-3xl py-8 px-6 border border-white/20 text-center shadow-xl">
-        {/* Location */}
         <div className="mb-4">
           <div className="flex items-center justify-center gap-2 mb-1">
             <MapPin className="text-pink-300" size={16} strokeWidth={1.5} />
@@ -86,15 +122,14 @@ export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
             </p>
           </div>
           
-          {/* State, Country */}
           <p className="text-white/70 text-sm font-light">
-            {weather.locationDetails?.state ? `${weather.locationDetails.state}, ` : ''}
+            {weather.locationDetails?.state && `${weather.locationDetails.state}, `}
             {weather.locationDetails?.country || weather.sys.country}
           </p>
         </div>
         
         <p className="text-white/70 text-xs mb-4 font-light">
-          {new Date().toLocaleDateString('en-US', { weekday: 'short', hour: '2-digit', minute: '2-digit' })}
+          {currentDate}
         </p>
         
         <div className="flex flex-col items-center mb-4">
@@ -110,7 +145,7 @@ export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
           {Math.round(weather.main.temp)}°
         </div>
         
-        {/* Feels like, Humidity */}
+        {/* Quick stats */}
         <div className="flex items-center justify-center gap-8 mt-4 text-white/90 text-sm">
           <div className="flex items-center gap-1.5">
             <Thermometer size={16} strokeWidth={1.5} className="text-white/70" />
@@ -126,41 +161,28 @@ export const WeatherDisplay: React.FC<WeatherDisplayProps> = ({
 
       {/* Details grid */}
       <div className="grid grid-cols-2 gap-2.5">
-        <div className="bg-black/25 backdrop-blur-xl rounded-2xl py-4 px-4 border border-white/20">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Cloud size={18} strokeWidth={1.5} className="text-white/70" />
-            <p className="text-white/70 text-xs font-light uppercase tracking-wide">Wind</p>
-          </div>
-          <p className="text-2xl font-thin text-white text-center">{weather.wind.speed}</p>
-          <p className="text-white/60 text-xs font-light mt-0.5 text-center">m/s</p>
-        </div>
-        
-        <div className="bg-black/25 backdrop-blur-xl rounded-2xl py-4 px-4 border border-white/20">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Gauge size={18} strokeWidth={1.5} className="text-white/70" />
-            <p className="text-white/70 text-xs font-light uppercase tracking-wide">Pressure</p>
-          </div>
-          <p className="text-2xl font-thin text-white text-center">{weather.main.pressure}</p>
-          <p className="text-white/60 text-xs font-light mt-0.5 text-center">hPa</p>
-        </div>
-        
-        <div className="bg-black/25 backdrop-blur-xl rounded-2xl py-4 px-4 border border-white/20">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Eye size={18} strokeWidth={1.5} className="text-white/70" />
-            <p className="text-white/70 text-xs font-light uppercase tracking-wide">Visibility</p>
-          </div>
-          <p className="text-2xl font-thin text-white text-center">{weather.visibility ? (weather.visibility / 1000).toFixed(1) : 'N/A'}</p>
-          <p className="text-white/60 text-xs font-light mt-0.5 text-center">km</p>
-        </div>
-        
-        <div className="bg-black/25 backdrop-blur-xl rounded-2xl py-4 px-4 border border-white/20">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <Thermometer size={18} strokeWidth={1.5} className="text-white/70" />
-            <p className="text-white/70 text-xs font-light uppercase tracking-wide">Feels Like</p>
-          </div>
-          <p className="text-2xl font-thin text-white text-center">{Math.round(weather.main.feels_like)}°</p>
-          <p className="text-white/60 text-xs font-light mt-0.5 text-center">celsius</p>
-        </div>
+        {detailCards.map((card, index) => {
+          const Icon = card.icon;
+          return (
+            <div 
+              key={index}
+              className="bg-black/25 backdrop-blur-xl rounded-2xl py-4 px-4 border border-white/20"
+            >
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Icon size={18} strokeWidth={1.5} className="text-white/70" />
+                <p className="text-white/90 text-xs font-light uppercase tracking-wide">
+                  {card.label}
+                </p>
+              </div>
+              <p className="text-2xl font-thin text-white text-center">
+                {card.value}
+              </p>
+              <p className="text-white/60 text-xs font-light mt-0.5 text-center">
+                {card.unit}
+              </p>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
