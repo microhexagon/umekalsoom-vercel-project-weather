@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "Weather App",
   description: "Real-time weather conditions",
   icons: {
-    icon: '@/public/favicon.ico/weather-icon.png',
+    icon: '/favicon.svg',
   },
 };
 
